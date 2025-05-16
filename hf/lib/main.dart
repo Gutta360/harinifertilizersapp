@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:littleflower/login.dart';
+import 'package:hfapp/login.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -8,20 +8,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
-        // apiKey: "AIzaSyAzz2lntnIRMRGTxvGqUGjYPVK9Zd0TxH0",
-        // authDomain: "littleflowerschoolapp.firebaseapp.com",
-        // projectId: "littleflowerschoolapp",
-        // storageBucket: "littleflowerschoolapp.firebasestorage.app",
-        // messagingSenderId: "743465373466",
-        // appId: "1:743465373466:web:17e645f781946e24cca6a3"),
-
-        apiKey: "AIzaSyDdojfI0l29-HRGQVybJg-bErNfp0yPETA",
-        authDomain: "littleflowersvuyyuru.firebaseapp.com",
-        projectId: "littleflowersvuyyuru",
-        storageBucket: "littleflowersvuyyuru.firebasestorage.app",
-        messagingSenderId: "264527105609",
-        appId: "1:264527105609:web:f8f23b5bf648e859223998",
-        measurementId: "G-218HZ2Q88E"),
+        apiKey: "AIzaSyCRQZmaZDlM7bd00LKFqiXll-_2vRVANWQ",
+        authDomain: "hfapp-b53bb.firebaseapp.com",
+        projectId: "hfapp-b53bb",
+        storageBucket: "hfapp-b53bb.firebasestorage.app",
+        messagingSenderId: "833342328412",
+        appId: "1:833342328412:web:fdb34c56218b18c44d2099",
+        measurementId: "G-X0BES6V8J4"),
   );
   runApp(
     ChangeNotifierProvider(

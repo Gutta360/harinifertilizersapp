@@ -1,76 +1,137 @@
 import 'dart:convert';
-import 'dart:html' as html;
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class JsonUploadWidget extends StatefulWidget {
-  const JsonUploadWidget({super.key});
+  const JsonUploadWidget({Key? key}) : super(key: key);
 
   @override
   State<JsonUploadWidget> createState() => _JsonUploadWidgetState();
 }
 
 class _JsonUploadWidgetState extends State<JsonUploadWidget> {
-  String _uploadStatus = "";
+  String status = "";
+  bool firebaseReady = false;
 
-  Future<void> _pickAndUploadFile() async {
-    final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.json';
-    uploadInput.click();
+  @override
+  void initState() {
+    super.initState();
+    _initializeFirebase();
+  }
 
-    uploadInput.onChange.listen((e) async {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        final reader = html.FileReader();
-        reader.readAsText(file);
-
-        reader.onLoadEnd.listen((event) async {
-          try {
-            final jsonData = json.decode(reader.result as String) as Map<String, dynamic>;
-
-            for (final entry in jsonData.entries) {
-              final adminno = entry.key;
-              final studentData = entry.value as Map<String, dynamic>;
-
-              await FirebaseFirestore.instance
-                  .collection("students")
-                  .doc(adminno)
-                  .set(studentData);
-            }
-
-            setState(() {
-              _uploadStatus = "Upload successful ✅";
-            });
-          } catch (e) {
-            setState(() {
-              _uploadStatus = "Upload failed ❌: $e";
-            });
-          }
-        });
+  Future<void> _initializeFirebase() async {
+    try {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: const FirebaseOptions(
+            apiKey: "AIzaSyAl0ra3F7-p_77Czgw8lS9fISW2WBeO_iI",
+            authDomain: "hffa-3ea40.firebaseapp.com",
+            projectId: "hffa-3ea40",
+            storageBucket: "hffa-3ea40.firebasestorage.app",
+            messagingSenderId: "595514369377",
+            appId: "1:595514369377:web:e14b9878ccae0ce5499120",
+            measurementId: "G-6WZN6JDQ0X",
+          ),
+        );
       }
+      setState(() {
+        firebaseReady = true;
+        status = "✅ Firebase initialized successfully.";
+      });
+    } catch (e) {
+      setState(() {
+        status = "❌ Firebase initialization failed: $e";
+      });
+      debugPrint("Firebase init error: $e");
+    }
+  }
+
+  Future<void> _uploadJsonToFirestore() async {
+    if (!firebaseReady) {
+      setState(() {
+        status = "❗ Firebase is not ready yet.";
+      });
+      return;
+    }
+
+    setState(() {
+      status = "📂 Opening file picker...";
     });
+
+    FilePickerResult? result = await FilePicker.platform.pickFiles(withData: true);
+    if (result == null || result.files.single.bytes == null) {
+      setState(() {
+        status = "No file selected or file data unavailable.";
+      });
+      return;
+    }
+
+    Uint8List fileBytes = result.files.single.bytes!;
+    String fileName = result.files.single.name;
+    String collectionName = fileName.split('.').first;
+
+    setState(() {
+      status = "🔄 Reading and validating JSON file...";
+    });
+
+    try {
+      String content = utf8.decode(fileBytes);
+      final decoded = json.decode(content);
+
+      if (decoded is! Map<String, dynamic>) {
+        setState(() {
+          status = "❌ Invalid JSON format: expected a map of document IDs to data objects.";
+        });
+        return;
+      }
+
+      Map<String, dynamic> jsonData = decoded;
+
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      WriteBatch batch = firestore.batch();
+      CollectionReference collectionRef = firestore.collection(collectionName);
+
+      for (String docId in jsonData.keys) {
+        DocumentReference docRef = collectionRef.doc(docId);
+        batch.set(docRef, jsonData[docId]);
+      }
+
+      await batch.commit();
+      setState(() {
+        status = "✅ Successfully uploaded ${jsonData.length} records to '$collectionName'.";
+      });
+    } catch (e) {
+      setState(() {
+        status = "❌ Error during upload: $e";
+      });
+      debugPrint("Upload error: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.upload_file),
-            label: const Text("Upload Students JSON"),
-            onPressed: _pickAndUploadFile,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _uploadStatus,
-            style: TextStyle(
-              color: _uploadStatus.contains("failed") ? Colors.red : Colors.green,
-              fontWeight: FontWeight.bold,
+    return Scaffold(
+      appBar: AppBar(title: const Text("Upload JSON to Firestore")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: _uploadJsonToFirestore,
+              child: const Text("📂 Browse and Upload JSON File"),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            Text(
+              status,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }

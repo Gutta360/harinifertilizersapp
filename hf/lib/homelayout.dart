@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:littleflower/jsonupload.dart';
-import 'package:littleflower/login.dart';
-import 'package:littleflower/payments.dart';
-import 'package:littleflower/student.dart';
-import 'package:littleflower/studentdetails.dart';
+import 'package:hfapp/jsonupload.dart';
+import 'package:hfapp/login.dart';
+import 'package:hfapp/payments.dart';
+import 'package:hfapp/settlement.dart';
+import 'package:hfapp/student.dart';
+import 'package:hfapp/studentdetails.dart';
+import 'package:hfapp/underprogress.dart';
 
 class HomeLayoutWidget extends StatefulWidget {
   const HomeLayoutWidget({super.key});
@@ -18,26 +20,31 @@ class _HomeLayoutWidgetState extends State<HomeLayoutWidget> {
 
   final Map<String, List<String>> subTabs = {
     'Home': ['Dashboard'],
-    'Student': ['Student', 'Student Details'],
-    'Staff': ['Staff', 'Staff Details'],
-    'Accounts': ['Income', 'Outgoing'],
-    'Inventory': ['Item', 'Item Details'],
+    'Customers': ['Customer', 'Customer Details'],
+    'Bills': ['Bill', 'Bill Details'],
+    'Accounts': ['Settlement'],
     'Admin': ['Upload Data'],
     'Logout': [],
   };
 
   Widget getTabContent() {
-    if (selectedSubTab == 'Student') {
-      return const StudentFormWidget();
+    if (selectedSubTab == 'Customer') {
+      return const UnderProgressWidget();
     }
-    if (selectedSubTab == 'Student Details') {
-      return const StudentDetailsWidget();
+    if (selectedSubTab == 'Customer Details') {
+      return const UnderProgressWidget();
     }
-    if (selectedSubTab == 'Income') {
-      return const PaymentFormWidget();
+    if (selectedSubTab == 'Bill') {
+      return const UnderProgressWidget();
+    }
+    if (selectedSubTab == 'Bill Details') {
+      return const UnderProgressWidget();
+    }
+    if (selectedSubTab == 'Settlement') {
+      return const SettlementFormWidget();
     }
     if (selectedSubTab == 'Upload Data') {
-      return JsonUploadWidget();
+      return const UnderProgressWidget();
     }
     return Center(
       child: Text(
