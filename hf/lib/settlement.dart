@@ -16,7 +16,7 @@ class _SettlementFormWidgetState extends State<SettlementFormWidget> {
   final TextEditingController _dateController = TextEditingController();
 
   Map<String, Map<String, dynamic>> _customerMap = {}; // fullName → {id, phone}
-String? _selectedCustomerName; // fullName like "Gutta Ram"
+  String? _selectedCustomerName; // fullName like "Gutta Ram"
 
   List<Map<String, dynamic>> _fetchedTransactions = [];
   List<Map<String, dynamic>> _customers = [];
@@ -51,22 +51,22 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
   }
 
   Future<void> _fetchCustomers() async {
-  final snapshot =
-      await FirebaseFirestore.instance.collection("customers").get();
+    final snapshot =
+        await FirebaseFirestore.instance.collection("customers").get();
 
-  final Map<String, Map<String, dynamic>> customerMap = {};
-  for (var doc in snapshot.docs) {
-    final data = doc.data();
-    final fullName = "${data['surname']} ${data['name']}";
-    customerMap[fullName] = {
-      "id": doc.id,
-      "phonenumber": data['phonenumber'] ?? '',
-    };
-  }
+    final Map<String, Map<String, dynamic>> customerMap = {};
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final fullName = "${data['surname']} ${data['name']}";
+      customerMap[fullName] = {
+        "id": doc.id,
+        "phonenumber": data['phonenumber'] ?? '',
+      };
+    }
 
-  setState(() {
-    _customerMap = customerMap;
-  });
+    setState(() {
+      _customerMap = customerMap;
+    });
   }
 
   void _pickDate() async {
@@ -103,8 +103,7 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
         .where("type", isEqualTo: _accountType)
         .get();
 
-    _fetchedTransactions =
-        query.docs.map((doc) => doc.data()).toList();
+    _fetchedTransactions = query.docs.map((doc) => doc.data()).toList();
 
     double total = 0;
     double interest = 0;
@@ -161,59 +160,67 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
                 child: Column(
                   children: [
                     DropdownSearch<String>(
-  items: _customerMap.keys.toList(),
-  selectedItem: _selectedCustomerName,
-  dropdownDecoratorProps: DropDownDecoratorProps(
-    dropdownSearchDecoration: _inputDecoration("Customer Name"),
-  ),
-  popupProps: PopupProps.menu(
-    showSearchBox: true,
-    searchFieldProps: const TextFieldProps(
-      decoration: InputDecoration(
-        labelText: "Search Customer",
-        prefixIcon: Icon(Icons.search),
-        border: OutlineInputBorder(),
-      ),
-    ),
-    itemBuilder: (context, item, isSelected) {
-      final phone = _customerMap[item]!['phonenumber'] ?? '';
-      return ListTile(
-        tileColor: isSelected ? Colors.orange.shade100 : null,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(item, style: const TextStyle(color: Colors.black)),
-            Text(phone, style: const TextStyle(color: Colors.black)),
-          ],
-        ),
-      );
-    },
-  ),
-  dropdownBuilder: (context, selectedItem) {
-    final phone = selectedItem != null
-        ? _customerMap[selectedItem]!['phonenumber']
-        : '';
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(selectedItem ?? '',
-            style: const TextStyle(color: Colors.black)),
-        Text(phone ?? '',
-            style: const TextStyle(color: Colors.grey)),
-      ],
-    );
-  },
-  onChanged: (value) {
-    setState(() {
-      _selectedCustomerName = value;
-      _selectedDisplayName = value; // for PDF
-      _selectedCustomerId =
-          value != null ? _customerMap[value]!['id'] : null;
-    });
-  },
-  validator: (value) =>
-      value == null || value.isEmpty ? "Customer is required" : null,
-),
+                      items: _customerMap.keys.toList(),
+                      selectedItem: _selectedCustomerName,
+                      dropdownDecoratorProps: DropDownDecoratorProps(
+                        dropdownSearchDecoration:
+                            _inputDecoration("Customer Name"),
+                      ),
+                      popupProps: PopupProps.menu(
+                        showSearchBox: true,
+                        searchFieldProps: const TextFieldProps(
+                          decoration: InputDecoration(
+                            labelText: "Search Customer",
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        itemBuilder: (context, item, isSelected) {
+                          final phone =
+                              _customerMap[item]!['phonenumber'] ?? '';
+                          return ListTile(
+                            tileColor:
+                                isSelected ? Colors.orange.shade100 : null,
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(item,
+                                    style:
+                                        const TextStyle(color: Colors.black)),
+                                Text(phone,
+                                    style:
+                                        const TextStyle(color: Colors.black)),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      dropdownBuilder: (context, selectedItem) {
+                        final phone = selectedItem != null
+                            ? _customerMap[selectedItem]!['phonenumber']
+                            : '';
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(selectedItem ?? '',
+                                style: const TextStyle(color: Colors.black)),
+                            Text(phone ?? '',
+                                style: const TextStyle(color: Colors.grey)),
+                          ],
+                        );
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCustomerName = value;
+                          _selectedDisplayName = value; // for PDF
+                          _selectedCustomerId =
+                              value != null ? _customerMap[value]!['id'] : null;
+                        });
+                      },
+                      validator: (value) => value == null || value.isEmpty
+                          ? "Customer is required"
+                          : null,
+                    ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _dateController,
@@ -291,7 +298,8 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
                                 _fetchedTransactions.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text("Please calculate first before printing.")),
+                                    content: Text(
+                                        "Please calculate first before printing.")),
                               );
                               return;
                             }
@@ -362,41 +370,66 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
                         height: 300,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text("S.No")),
-                              DataColumn(label: Text("Bill Date")),
-                              DataColumn(label: Text("Bill No")),
-                              DataColumn(label: Text("Bill Amount")),
-                              DataColumn(label: Text("Interest")),
-                              DataColumn(label: Text("Total")),
-                            ],
-                            rows: _fetchedTransactions.asMap().entries.map((entry) {
-                              final index = entry.key + 1;
-                              final data = entry.value;
+                          child: SingleChildScrollView(
+                            child: DataTable(
+                              columns: const [
+                                DataColumn(label: Text("S.No")),
+                                DataColumn(label: Text("Bill Date")),
+                                DataColumn(label: Text("Bill No")),
+                                DataColumn(label: Text("Bill Amount")),
+                                DataColumn(label: Text("Interest")),
+                                DataColumn(label: Text("Total")),
+                              ],
+                              rows: _fetchedTransactions
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final index = entry.key + 1;
+                                final data = entry.value;
 
-                              final billDate = data["date"] ?? '';
-                              final billNo = data["billno"] ?? '';
-                              final billAmt = double.tryParse(data["billamount"].toString()) ?? 0;
-                              final billDateParsed = DateTime.tryParse(billDate.toString());
-                              final formattedDate = billDateParsed != null
-                                  ? DateFormat('yyyy-MM-dd').format(billDateParsed)
-                                  : billDate.toString();
+                                final billDate = data["date"] ?? '';
+                                final billNo = data["billno"] ?? '';
+                                final billAmt = double.tryParse(
+                                        data["billamount"].toString()) ??
+                                    0;
+                                final billDateParsed =
+                                    DateTime.tryParse(billDate.toString());
+                                final formattedDate = billDateParsed != null
+                                    ? DateFormat('yyyy-MM-dd')
+                                        .format(billDateParsed)
+                                    : billDate.toString();
 
-                              final rate = double.parse(_interest!.replaceAll('%', '').trim()) / 100 / 30;
-                              final days = _selectedDate.difference(billDateParsed ?? _selectedDate).inDays;
-                              final interest = billAmt * rate * days;
-                              final total = billAmt + interest;
+                                final rate = double.parse(
+                                        _interest!.replaceAll('%', '').trim()) /
+                                    100 /
+                                    30;
+                                final days = _selectedDate
+                                    .difference(billDateParsed ?? _selectedDate)
+                                    .inDays;
+                                final interest = billAmt * rate * days;
+                                final total = billAmt + interest;
 
-                              return DataRow(cells: [
-                                DataCell(Text(index.toString())),
-                                DataCell(Text(formattedDate)),
-                                DataCell(Text(billNo.toString())),
-                                DataCell(Text(billAmt.toStringAsFixed(2))),
-                                DataCell(Text(interest.toStringAsFixed(2))),
-                                DataCell(Text(total.toStringAsFixed(2))),
-                              ]);
-                            }).toList(),
+                                return DataRow(
+                                  color:
+                                      MaterialStateProperty.resolveWith<Color?>(
+                                    (Set<MaterialState> states) {
+                                      return index % 2 == 0
+                                          ? const Color(
+                                              0xFFFFF8E1) // Cream for even rows
+                                          : Colors.white; // White for odd rows
+                                    },
+                                  ),
+                                  cells: [
+                                    DataCell(Text(index.toString())),
+                                    DataCell(Text(formattedDate)),
+                                    DataCell(Text(billNo.toString())),
+                                    DataCell(Text(billAmt.toStringAsFixed(2))),
+                                    DataCell(Text(interest.toStringAsFixed(2))),
+                                    DataCell(Text(total.toStringAsFixed(2))),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
                           ),
                         ),
                       ),
