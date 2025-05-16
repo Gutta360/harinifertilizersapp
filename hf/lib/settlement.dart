@@ -13,10 +13,13 @@ class SettlementFormWidget extends StatefulWidget {
 
 class _SettlementFormWidgetState extends State<SettlementFormWidget> {
   final _formKey = GlobalKey<FormState>();
-  List<Map<String, dynamic>> _fetchedTransactions = [];
+  final TextEditingController _dateController = TextEditingController();
 
   Map<String, Map<String, dynamic>> _customerMap = {}; // fullName → {id, phone}
 String? _selectedCustomerName; // fullName like "Gutta Ram"
+
+  List<Map<String, dynamic>> _fetchedTransactions = [];
+  List<Map<String, dynamic>> _customers = [];
 
   String? _selectedCustomerId;
   String? _selectedDisplayName;
@@ -24,11 +27,11 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
   String? _accountType;
   String? _interest;
 
-  final TextEditingController _dateController = TextEditingController();
-
   double? _total;
   double? _interestValue;
   double? _totalWithInterest;
+
+  bool _showTallyTable = false;
 
   List<String> _accountTypes = [
     "ANAMATH",
@@ -39,8 +42,6 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
 
   List<String> _interestRates =
       List.generate(18, (i) => "${(i * 0.5).toStringAsFixed(1)} %");
-
-  List<Map<String, dynamic>> _customers = [];
 
   @override
   void initState() {
@@ -66,7 +67,7 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
   setState(() {
     _customerMap = customerMap;
   });
-}
+  }
 
   void _pickDate() async {
     DateTime? picked = await showDatePicker(
@@ -103,7 +104,7 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
         .get();
 
     _fetchedTransactions =
-        query.docs.map((doc) => doc.data()).toList(); // ⬅️ Store here
+        query.docs.map((doc) => doc.data()).toList();
 
     double total = 0;
     double interest = 0;
@@ -256,6 +257,26 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
                           onPressed: _calculateSettlement,
                         ),
                         ElevatedButton.icon(
+                          icon: const Icon(Icons.table_chart),
+                          label: const Text("Tally"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            if (_fetchedTransactions.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Please calculate first.")),
+                              );
+                            } else {
+                              setState(() {
+                                _showTallyTable = !_showTallyTable;
+                              });
+                            }
+                          },
+                        ),
+                        ElevatedButton.icon(
                           icon: const Icon(Icons.print),
                           label: const Text("Print"),
                           style: ElevatedButton.styleFrom(
@@ -270,8 +291,7 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
                                 _fetchedTransactions.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text(
-                                        "Please calculate first before printing.")),
+                                    content: Text("Please calculate first before printing.")),
                               );
                               return;
                             }
@@ -332,6 +352,55 @@ String? _selectedCustomerName; // fullName like "Gutta Ram"
                         ],
                       ),
                     ],
+                    if (_showTallyTable) ...[
+                      const SizedBox(height: 24),
+                      const Text("Tally Records",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 300,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text("S.No")),
+                              DataColumn(label: Text("Bill Date")),
+                              DataColumn(label: Text("Bill No")),
+                              DataColumn(label: Text("Bill Amount")),
+                              DataColumn(label: Text("Interest")),
+                              DataColumn(label: Text("Total")),
+                            ],
+                            rows: _fetchedTransactions.asMap().entries.map((entry) {
+                              final index = entry.key + 1;
+                              final data = entry.value;
+
+                              final billDate = data["date"] ?? '';
+                              final billNo = data["billno"] ?? '';
+                              final billAmt = double.tryParse(data["billamount"].toString()) ?? 0;
+                              final billDateParsed = DateTime.tryParse(billDate.toString());
+                              final formattedDate = billDateParsed != null
+                                  ? DateFormat('yyyy-MM-dd').format(billDateParsed)
+                                  : billDate.toString();
+
+                              final rate = double.parse(_interest!.replaceAll('%', '').trim()) / 100 / 30;
+                              final days = _selectedDate.difference(billDateParsed ?? _selectedDate).inDays;
+                              final interest = billAmt * rate * days;
+                              final total = billAmt + interest;
+
+                              return DataRow(cells: [
+                                DataCell(Text(index.toString())),
+                                DataCell(Text(formattedDate)),
+                                DataCell(Text(billNo.toString())),
+                                DataCell(Text(billAmt.toStringAsFixed(2))),
+                                DataCell(Text(interest.toStringAsFixed(2))),
+                                DataCell(Text(total.toStringAsFixed(2))),
+                              ]);
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    ]
                   ],
                 ),
               )
