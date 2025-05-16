@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hfapp/customer.dart';
+import 'package:hfapp/customerdetails.dart';
 import 'package:hfapp/jsonupload.dart';
 import 'package:hfapp/login.dart';
 import 'package:hfapp/payments.dart';
@@ -29,10 +31,10 @@ class _HomeLayoutWidgetState extends State<HomeLayoutWidget> {
 
   Widget getTabContent() {
     if (selectedSubTab == 'Customer') {
-      return const UnderProgressWidget();
+      return const CustomerWidget();
     }
     if (selectedSubTab == 'Customer Details') {
-      return const UnderProgressWidget();
+      return const CustomerDetailsWidget();
     }
     if (selectedSubTab == 'Bill') {
       return const UnderProgressWidget();

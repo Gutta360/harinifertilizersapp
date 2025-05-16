@@ -1,3 +1,4 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,9 @@ class SettlementFormWidget extends StatefulWidget {
 class _SettlementFormWidgetState extends State<SettlementFormWidget> {
   final _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> _fetchedTransactions = [];
+
+  Map<String, Map<String, dynamic>> _customerMap = {}; // fullName → {id, phone}
+String? _selectedCustomerName; // fullName like "Gutta Ram"
 
   String? _selectedCustomerId;
   String? _selectedDisplayName;
@@ -46,20 +50,23 @@ class _SettlementFormWidgetState extends State<SettlementFormWidget> {
   }
 
   Future<void> _fetchCustomers() async {
-    final snapshot =
-        await FirebaseFirestore.instance.collection("customers").get();
-    final List<Map<String, dynamic>> names = snapshot.docs.map((doc) {
-      final data = doc.data();
-      return {
-        "id": doc.id,
-        "display": "${data['surname']} ${data['name']}",
-        "phone": data['phonenumber'] ?? '',
-      };
-    }).toList();
-    setState(() {
-      _customers = names;
-    });
+  final snapshot =
+      await FirebaseFirestore.instance.collection("customers").get();
+
+  final Map<String, Map<String, dynamic>> customerMap = {};
+  for (var doc in snapshot.docs) {
+    final data = doc.data();
+    final fullName = "${data['surname']} ${data['name']}";
+    customerMap[fullName] = {
+      "id": doc.id,
+      "phonenumber": data['phonenumber'] ?? '',
+    };
   }
+
+  setState(() {
+    _customerMap = customerMap;
+  });
+}
 
   void _pickDate() async {
     DateTime? picked = await showDatePicker(
@@ -152,32 +159,60 @@ class _SettlementFormWidgetState extends State<SettlementFormWidget> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    DropdownButtonFormField<String>(
-                      value: _selectedCustomerId,
-                      items: _customers.map((cust) {
-                        return DropdownMenuItem<String>(
-                          value: cust["id"],
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(cust["display"],
-                                  style: const TextStyle(color: Colors.black)),
-                              Text(cust["phone"],
-                                  style: const TextStyle(color: Colors.black)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        final matched =
-                            _customers.firstWhere((c) => c["id"] == val);
-                        setState(() {
-                          _selectedCustomerId = val;
-                          _selectedDisplayName = matched["display"];
-                        });
-                      },
-                      decoration: _inputDecoration("Customer Name"),
-                    ),
+                    DropdownSearch<String>(
+  items: _customerMap.keys.toList(),
+  selectedItem: _selectedCustomerName,
+  dropdownDecoratorProps: DropDownDecoratorProps(
+    dropdownSearchDecoration: _inputDecoration("Customer Name"),
+  ),
+  popupProps: PopupProps.menu(
+    showSearchBox: true,
+    searchFieldProps: const TextFieldProps(
+      decoration: InputDecoration(
+        labelText: "Search Customer",
+        prefixIcon: Icon(Icons.search),
+        border: OutlineInputBorder(),
+      ),
+    ),
+    itemBuilder: (context, item, isSelected) {
+      final phone = _customerMap[item]!['phonenumber'] ?? '';
+      return ListTile(
+        tileColor: isSelected ? Colors.orange.shade100 : null,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(item, style: const TextStyle(color: Colors.black)),
+            Text(phone, style: const TextStyle(color: Colors.black)),
+          ],
+        ),
+      );
+    },
+  ),
+  dropdownBuilder: (context, selectedItem) {
+    final phone = selectedItem != null
+        ? _customerMap[selectedItem]!['phonenumber']
+        : '';
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(selectedItem ?? '',
+            style: const TextStyle(color: Colors.black)),
+        Text(phone ?? '',
+            style: const TextStyle(color: Colors.grey)),
+      ],
+    );
+  },
+  onChanged: (value) {
+    setState(() {
+      _selectedCustomerName = value;
+      _selectedDisplayName = value; // for PDF
+      _selectedCustomerId =
+          value != null ? _customerMap[value]!['id'] : null;
+    });
+  },
+  validator: (value) =>
+      value == null || value.isEmpty ? "Customer is required" : null,
+),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _dateController,

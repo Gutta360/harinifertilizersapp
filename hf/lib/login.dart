@@ -45,7 +45,7 @@ class _NewLoginPageState extends State<NewLoginPage> {
           fit: StackFit.expand,
           children: [
             Opacity(
-              opacity: 0.4,
+              opacity: 0.6,
               child: Image.asset(
                 'assets/images/loginbackground.jpg',
                 fit: BoxFit.cover,
