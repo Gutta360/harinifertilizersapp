@@ -14,6 +14,27 @@ class _NewLoginPageState extends State<NewLoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+// void _login() {
+//   if (_formKey.currentState!.validate()) {
+//     final email = _emailController.text.trim();
+//     final password = _passwordController.text;
+
+//     if (email == 'harish@gmail.com' && password == 'harish') {
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(builder: (context) => const HomeLayoutWidget()),
+//       );
+//     } else {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(
+//           content: Text('Invalid email or password'),
+//           backgroundColor: Colors.red,
+//         ),
+//       );
+//     }
+//   }
+// }
+
   void _login() {
     if (_formKey.currentState!.validate()) {
       Navigator.pushReplacement(
@@ -69,13 +90,13 @@ class _NewLoginPageState extends State<NewLoginPage> {
                           ),
                           onFieldSubmitted: (_) => _login(),
                           validator: (value) {
-                            // if (value == null || value.trim().isEmpty) {
-                            //   return 'Please enter an email';
-                            // } else if (!RegExp(
-                            //   r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-                            // ).hasMatch(value.trim())) {
-                            //   return 'Please enter a valid email';
-                            // }
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter an email';
+                            } else if (!RegExp(
+                              r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                            ).hasMatch(value.trim())) {
+                              return 'Please enter a valid email';
+                            }
                             return null;
                           },
                         ),
@@ -89,9 +110,9 @@ class _NewLoginPageState extends State<NewLoginPage> {
                           ),
                           onFieldSubmitted: (_) => _login(),
                           validator: (value) {
-                            // if (value == null || value.trim().isEmpty) {
-                            //   return 'Please enter a password';
-                            // }
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter a password';
+                            }
                             return null;
                           },
                         ),

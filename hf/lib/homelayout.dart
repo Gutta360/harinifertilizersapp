@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hfapp/bill.dart';
+import 'package:hfapp/billdetails.dart';
 import 'package:hfapp/customer.dart';
 import 'package:hfapp/customerdetails.dart';
 import 'package:hfapp/jsonupload.dart';
@@ -37,10 +39,10 @@ class _HomeLayoutWidgetState extends State<HomeLayoutWidget> {
       return const CustomerDetailsWidget();
     }
     if (selectedSubTab == 'Bill') {
-      return const UnderProgressWidget();
+      return const BillWidget();
     }
     if (selectedSubTab == 'Bill Details') {
-      return const UnderProgressWidget();
+      return const BillDetailsWidget();
     }
     if (selectedSubTab == 'Settlement') {
       return const SettlementFormWidget();
